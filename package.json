@@ -1,4 +1,5 @@
 {
+  "homepage": "http://harshil1509.github.io/frontend_assignment",
   "name": "frontend_assignment",
   "version": "0.1.0",
   "private": true,
@@ -18,6 +19,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "predeploy" : "npm run build",
+    "deploy" : "gh-pages -d build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -43,6 +46,7 @@
   "devDependencies": {
     "@tailwindcss/forms": "^0.4.0",
     "autoprefixer": "^10.4.2",
+    "gh-pages": "^5.0.0",
     "postcss": "^8.4.7",
     "prettier": "^2.5.1",
     "prettier-plugin-tailwindcss": "^0.1.8",
