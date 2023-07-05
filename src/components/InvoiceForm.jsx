@@ -210,7 +210,7 @@ const InvoiceForm = () => {
 
             if(items['taxVal']!=0){
               const currTotal = Number(items['price'] * Math.floor(items['qty']))
-              const newTaxPer = editedItem.value / currTotal
+              const newTaxPer = (editedItem.value / currTotal)*100
               items[key] = editedItem.value
               items['taxPer'] = newTaxPer
             }
@@ -219,7 +219,7 @@ const InvoiceForm = () => {
 
             if(items['disVal']!=0){
               const currTotal = Number(items['price'] * Math.floor(items['qty']))
-              const newDisPer = editedItem.value / currTotal
+              const newDisPer = (editedItem.value / currTotal)*100
               items[key] = editedItem.value
               items['disPer'] = newDisPer
             }
