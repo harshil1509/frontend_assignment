@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { uid } from 'uid';
 import InvoiceItem from './InvoiceItem';
 import InvoiceModal from './InvoiceModal';
@@ -25,6 +25,7 @@ const InvoiceForm = () => {
   const [cashierName, setCashierName] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [lastInvoiceNum, setLastInvoiceNum] = useState(1)
+  const [rerender, makeRender] = useState(false)
 
   const [allInvoices, setAllInvoices] = useRecoilState(invoicesState)
   // console.log(allInvoices)
@@ -36,6 +37,10 @@ const InvoiceForm = () => {
       name: '',
       qty: 1,
       price: '1.00',
+      taxVal : 0,
+      taxPer : 0,
+      disVal : 0,
+      disPer : 0
     },
   ]);
 
@@ -120,6 +125,10 @@ const InvoiceForm = () => {
         name: '',
         qty: 1,
         price: '1.00',
+        taxVal : 0,
+        taxPer : 0,
+        disVal : 0,
+        disPer : 0
       },
     ]);
   };
@@ -133,6 +142,10 @@ const InvoiceForm = () => {
         name: '',
         qty: 1,
         price: '1.00',
+        taxVal : 0,
+        taxPer : 0,
+        disVal : 0,
+        disPer : 0
       },
     ]);
   };
@@ -144,6 +157,8 @@ const InvoiceForm = () => {
   const deleteInvoice = (myInvoice) =>{
     setAllInvoices((prev)=>prev.filter((item)=>item.invoiceNumber !== myInvoice.invoiceNumber))
   }
+
+  
   const edtiItemHandler = (event) => {
     // console.log(event.target.value)
     // event.preventDefault()
@@ -153,22 +168,95 @@ const InvoiceForm = () => {
       value: event.target.value,
     };
 
+   
     const newItems = items.map((items) => {
       for (const key in items) {
         if (key === editedItem.name && items.id === editedItem.id) {
+
+
+          if(editedItem.name === "price" || editedItem.name === "qty"){
+            if(items['taxPer']!=0){
+              const currTotal = Number(items['price'] * Math.floor(items['qty']))
+              const newTaxRate = (items['taxPer'] * currTotal) / 100
+              items['taxVal'] = newTaxRate
+            }
+            if(items['taxVal']!=0){
+              const currTotal = Number(items['price'] * Math.floor(items['qty']))
+              const newTaxPer = (items['taxVal']*100 / currTotal)
+              items[key] = editedItem.value
+              items['taxPer'] = newTaxPer
+            }
+            if(items['disPer'] !=0){
+
+              const currTotal = Number(items['price'] * Math.floor(items['qty']))
+              const newDisRate = (items['disPer'] * currTotal) / 100;
+              items[key] = editedItem.value
+              items['disVal'] = newDisRate
+            }
+          }
+          
+         else if(editedItem.name === "taxPer"){
+
+            if(items['taxPer'] !=0){
+
+              const currTotal = Number(items['price'] * Math.floor(items['qty']))
+              const newTaxRate = (editedItem.value * currTotal) / 100;
+              items[key] = editedItem.value
+              items['taxVal'] = newTaxRate
+            }
+            
+
+          }else if(editedItem.name === "taxVal" ){
+
+            if(items['taxVal']!=0){
+              const currTotal = Number(items['price'] * Math.floor(items['qty']))
+              const newTaxPer = editedItem.value / currTotal
+              items[key] = editedItem.value
+              items['taxPer'] = newTaxPer
+            }
+
+          }else if(editedItem.name === "disVal"){
+
+            if(items['disVal']!=0){
+              const currTotal = Number(items['price'] * Math.floor(items['qty']))
+              const newDisPer = editedItem.value / currTotal
+              items[key] = editedItem.value
+              items['disPer'] = newDisPer
+            }
+          }else if(editedItem.name === "disPer"){
+
+            if(items['disPer'] !=0){
+
+              const currTotal = Number(items['price'] * Math.floor(items['qty']))
+              const newDisRate = (editedItem.value * currTotal) / 100;
+              items[key] = editedItem.value
+              items['disVal'] = newDisRate
+            }
+
+          }else{
+            items[key] = editedItem.value;
+          }
+          
           items[key] = editedItem.value;
+
         }
       }
       return items;
     });
-
+    
     setItems(newItems);
+    console.log(items)
+    // makeRender(!rerender)
   };
+
+
 
   //calculate subtotal
   const subtotal = items.reduce((prev, curr) => {
-    if (curr.name.trim().length > 0)
-      return prev + Number(curr.price * Math.floor(curr.qty));
+    if (curr.name.trim().length > 0){
+      const prevSubtotal = Number(curr.price * Math.floor(curr.qty) - curr.disVal + curr.taxVal)
+      return prev + prevSubtotal;
+    }
     else return prev;
   }, 0);
 
@@ -265,11 +353,17 @@ const InvoiceForm = () => {
                 <th>ITEM</th>
                 <th>QTY</th>
                 <th className="text-center">PRICE (In Rs)</th>
+                <th className="text-center">Tax</th>
+                <th className="text-center">Tax %</th>
+                <th className="text-center">Discount</th>
+                <th className="text-center">Discount %</th>
+
                 <th className="text-center">ACTION</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
+               <>
                 <InvoiceItem
                   key={item.id}
                   id={item.id}
@@ -279,7 +373,29 @@ const InvoiceForm = () => {
                   onDeleteItem={deleteItemHandler}
                   onEdtiItem={edtiItemHandler}
                 />
+                <div style={{width:'350px', alignItems:'center', marginTop : '20px', bottom : 20}}>
+                  <div style={{display:"flex", flexDirection:'row', justifyContent:'space-between'}}>
+                  <h2>Final Tax Value (for this item):  </h2>
+                  <h2>{item['taxVal']}</h2>
+                  </div>
+                  <div style={{display:"flex", flexDirection:'row', justifyContent:'space-between'}}>
+                  <h2>Final Tax Percentage(for this item) :  </h2>
+                  <h2>{item['taxPer']}</h2>
+                  </div>
+                  <div style={{display:"flex", flexDirection:'row', justifyContent:'space-between'}}>
+                  <h2>Final Discount Rate (for this item):  </h2>
+                  <h2>{item['disVal']}</h2>
+                  </div>
+                  <div style={{display:"flex", flexDirection:'row', justifyContent:'space-between'}}>
+                  <h2>Final Discount Percentage (for this item):  </h2>
+                  <h2>{item['disPer']}</h2>
+                  </div>
+                </div>
+                
+              </>
               ))}
+             
+
             </tbody>
           </table>
           <button

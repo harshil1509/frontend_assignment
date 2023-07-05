@@ -1,6 +1,6 @@
 import React from 'react';
 
-const InvoiceField = ({ onEditItem, cellData }) => {
+const InvoiceField = ({ onEditItem, cellData, required }) => {
   return (
     <input
       className={cellData.className}
@@ -13,7 +13,7 @@ const InvoiceField = ({ onEditItem, cellData }) => {
       id={cellData.id}
       value={cellData.value}
       onChange={onEditItem}
-      required
+      required={required}
       contentEditable = {true}
       readOnly = {false}
     />
